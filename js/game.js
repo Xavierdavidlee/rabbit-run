@@ -26,7 +26,7 @@
 // TODO: build this file here.
 import { CONFIG } from "./config.js";
 import { loadAllAssets } from "./assets.js";
-import { Input } from "./imput.js";
+import { Input } from "./input.js";
 import { TileMap } from "./tilemap.js";
 import { Camera } from "./camera.js";
 import { Player } from "./player.js";

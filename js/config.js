@@ -13,7 +13,7 @@
 // ============================================================================
 
 // TODO: build this file here.
-export const config = {
+export const CONFIG = {
     TITLE_SIZE: 16,
     SCALE: 3,
     VIEW_TILES_X: 16,

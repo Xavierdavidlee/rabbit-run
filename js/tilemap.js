@@ -20,7 +20,7 @@
 import { CONFIG } from "./config.js";
 import { drawTile } from "./tilesets.js";
 
-export class Tilemap {
+export class TileMap {
     constructor(data) {
         this.data = data;
         this.width = data.width;
