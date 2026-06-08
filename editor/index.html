@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rabbit Run: Tales of the Warren - Map Editor</title>
+<style>
+  /* ============================================================
+     The whole editor is ONE file: HTML + CSS + JS together so it
+     is easy to hand out. It paints onto a <canvas> and exports a
+     JSON file that the game loads directly.
+     ============================================================ */
+  :root{
+    --bg:#cfe2f3; --panel:#e7f1fb; --panel2:#d8e8f7; --edge:#7fb2dc;
+    --text:#2d3e50; --dim:#5a7a93; --accent:#4a7ba6; --accent2:#5fa86f; --danger:#e07a7a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Courier New",monospace;}
+  body{background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+  header{background:var(--panel);border-bottom:2px solid var(--edge);padding:8px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  header h1{color:var(--accent);font-size:16px;letter-spacing:2px;}
+  header .hint{color:var(--dim);font-size:11px;}
+  .main{flex:1;display:flex;min-height:0;}
+  /* Left tool panel */
+  .tools{width:230px;background:var(--panel);border-right:2px solid var(--edge);overflow-y:auto;padding:10px;}
+  .tools h2{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px;border-bottom:1px solid var(--edge);padding-bottom:3px;}
+  .tools h2:first-child{margin-top:0;}
+  .row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--edge);padding:6px 8px;border-radius:4px;cursor:pointer;font-size:11px;transition:.12s;}
+  button:hover{background:var(--edge);}
+  button.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:bold;}
+  button.wide{width:100%;}
+  button.go{background:var(--accent2);color:#fff;border-color:var(--accent2);font-weight:bold;}
+  button.go:hover{filter:brightness(1.1);}
+  label{font-size:11px;color:var(--dim);display:block;margin-bottom:3px;}
+  input,select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--edge);padding:5px;border-radius:4px;font-size:11px;margin-bottom:6px;}
+  /* Center canvas area */
+  .stage{flex:1;overflow:auto;background:#bcd9ef;position:relative;padding:20px;}
+  #map{image-rendering:pixelated;background:#bfe0f2;border:2px solid var(--edge);cursor:crosshair;display:block;}
+  /* Right palette */
+  .palette{width:300px;background:var(--panel);border-left:2px solid var(--edge);display:flex;flex-direction:column;}
+  .palette .pickwrap{flex:1;overflow:auto;padding:10px;}
+  #palette{image-rendering:pixelated;background:#eaf4ff;border:1px solid var(--edge);cursor:pointer;display:block;}
+  .selinfo{padding:8px 10px;font-size:11px;color:var(--dim);border-top:1px solid var(--edge);}
+  .selinfo b{color:var(--accent);}
+  .swatch{display:inline-block;width:48px;height:48px;border:2px solid var(--accent);image-rendering:pixelated;vertical-align:middle;margin-right:8px;background:#eaf4ff;}
+  .legend{font-size:10px;color:var(--dim);line-height:1.5;}
+  .legend span{display:inline-block;width:12px;height:12px;vertical-align:middle;margin-right:4px;border:1px solid #000;}
+  kbd{background:var(--panel2);border:1px solid var(--edge);border-radius:3px;padding:1px 5px;font-size:10px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>✦ RABBIT RUN: TALES OF THE WARREN MAP EDITOR</h1>
+  <span class="hint">Paint with the mouse &bull; <kbd>1-5</kbd> switch layer &bull; <kbd>Ctrl+S</kbd> export</span>
+</header>
+
+<div class="main">
+  <!-- ============ LEFT: TOOLS ============ -->
+  <aside class="tools">
+    <h2>Layer</h2>
+    <div class="row" id="layerButtons">
+      <button data-layer="ground" class="active">1 Ground</button>
+      <button data-layer="overlay">2 Overlay</button>
+      <button data-layer="decor">3 Decor</button>
+      <button data-layer="solid">4 Solid</button>
+      <button data-layer="entity">5 Entities</button>
+    </div>
+    <p class="legend" id="layerHelp"></p>
+
+    <h2>Tool</h2>
+    <div class="row" id="toolButtons">
+      <button data-tool="paint" class="active">Paint</button>
+      <button data-tool="erase">Erase</button>
+      <button data-tool="fill">Fill</button>
+    </div>
+
+    <h2>Tileset</h2>
+    <select id="tilesetSelect"></select>
+
+    <div id="entityPanel" style="display:none;">
+      <h2>Entity to place</h2>
+      <select id="entityType">
+        <option value="player">Player Start</option>
+        <option value="npc">NPC</option>
+        <option value="enemy">Enemy</option>
+        <option value="item">Item</option>
+      </select>
+      <div id="entityFields"></div>
+    </div>
+
+    <h2>Map size</h2>
+    <label>Width (tiles)</label>
+    <input type="number" id="mapW" value="25" min="5" max="80">
+    <label>Height (tiles)</label>
+    <input type="number" id="mapH" value="18" min="5" max="80">
+    <button class="wide" id="resizeBtn">Apply size (clears map)</button>
+
+    <h2>Map settings</h2>
+    <label>Map name</label>
+    <input type="text" id="mapName" value="My New Map">
+    <label>Music</label>
+    <select id="mapMusic">
+      <option value="town_theme">town_theme</option>
+      <option value="battle_theme">battle_theme</option>
+    </select>
+
+    <h2>File</h2>
+    <button class="wide go" id="exportBtn">⬇ Export map JSON</button>
+    <button class="wide" id="importBtn">⬆ Import map JSON</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none;">
+    <button class="wide" id="loadStarterBtn">Load starter meadow</button>
+  </aside>
+
+  <!-- ============ CENTER: MAP CANVAS ============ -->
+  <div class="stage">
+    <canvas id="map"></canvas>
+  </div>
+
+  <!-- ============ RIGHT: TILE PALETTE ============ -->
+  <aside class="palette">
+    <div class="pickwrap">
+      <canvas id="palette"></canvas>
+    </div>
+    <div class="selinfo" id="selInfo">
+      <div><span class="swatch" id="swatch"></span> <b id="selText">grass_dirt:0</b></div>
+      <p class="legend" style="margin-top:8px;">
+        <span style="background:#e07a7a;"></span>Solid tile overlay &nbsp;
+        <span style="background:#c98a1a;"></span>Player start<br>
+        <span style="background:#1c8fa8;"></span>NPC &nbsp;
+        <span style="background:#d64545;"></span>Enemy &nbsp;
+        <span style="background:#3a9d4f;"></span>Item
+      </p>
+    </div>
+  </aside>
+</div>
+
+<script type="module">
+// =============================================================
+//  EDITOR LOGIC
+// =============================================================
+//  We reuse the SAME tileset definitions and tile size as the game,
+//  so a map made here drops straight into the game with no changes.
+// =============================================================
+
+const TILE = 16;          // source tile size (matches the art)
+const CELL = 32;          // how big each tile is drawn in the editor (zoom)
+const PALETTE_COLS = 8;   // tiles shown per row in the palette
+
+// Tileset sheets (name -> file + columns). Mirrors the game's tilesets.js.
+const TILESETS = {
+  grass_dirt: { src:"assets/tilesets/grass_dirt.png", cols:21 },
+  nature:     { src:"assets/tilesets/nature.png",     cols:21 },
+  exterior:   { src:"assets/tilesets/exterior.png",   cols:25 },
+  house:      { src:"assets/tilesets/house.png",      cols:38 },
+  crops:      { src:"assets/tilesets/crops.png",      cols:6  },
+  floor:      { src:"assets/tilesets/floor.png",      cols:11 },
+};
+
+// Sprite previews for entity placement.
+const SPRITES = {
+  cow:"assets/sprites/cow_idle.png",
+  chicken:"assets/sprites/chicken_idle.png",
+  slime:"assets/sprites/slime_idle.png",
+  bat:"assets/sprites/bat_idle.png",
+  bunny:"assets/sprites/bunny_idle.png",
+};
+
+const images = {};
+const spriteImgs = {};
+
+// ---- Editor state ----
+let state = {
+  width: 25, height: 18,
+  ground: [], decor: [], solid: [],
+  entities: [],
+  playerStart: { col: 12, row: 13 },
+};
+let layer = "ground";
+let tool = "paint";
+let currentTileset = "grass_dirt";
+let selectedTile = 0;        // index within the current tileset
+let entityType = "npc";
+let painting = false;
+
+const mapCanvas = document.getElementById("map");
+const mapCtx = mapCanvas.getContext("2d");
+const palCanvas = document.getElementById("palette");
+const palCtx = palCanvas.getContext("2d");
+mapCtx.imageSmoothingEnabled = false;
+palCtx.imageSmoothingEnabled = false;
+
+// ---- Load all images, then start ----
+function loadImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+async function loadAll(){
+  for(const [n,t] of Object.entries(TILESETS)) images[n]=await loadImg(t.src);
+  for(const [n,s] of Object.entries(SPRITES)) spriteImgs[n]=await loadImg(s);
+}
+
+// ---- Make a fresh blank map ----
+function blankMap(w,h){
+  const n=w*h;
+  state.width=w; state.height=h;
+  state.ground=new Array(n).fill("grass_dirt:73"); // default to grass
+  state.overlay=new Array(n).fill("");
+  state.decor=new Array(n).fill("");
+  state.solid=new Array(n).fill(0);
+  state.entities=[];
+  state.playerStart={col:Math.floor(w/2),row:Math.floor(h/2)};
+  resizeCanvas();
+}
+function idx(c,r){return r*state.width+c;}
+function resizeCanvas(){
+  mapCanvas.width=state.width*CELL;
+  mapCanvas.height=state.height*CELL;
+}
+
+// ---- Draw one tile from a sheet onto a context ----
+function drawTileTo(ctx, tileId, x, y, size){
+  if(!tileId) return;
+  const [sheet,iStr]=tileId.split(":");
+  const set=TILESETS[sheet], img=images[sheet];
+  if(!set||!img) return;
+  const i=parseInt(iStr,10);
+  const sx=(i%set.cols)*TILE, sy=Math.floor(i/set.cols)*TILE;
+  ctx.drawImage(img,sx,sy,TILE,TILE,x,y,size,size);
+}
+
+// ---- Render the whole map ----
+function renderMap(){
+  mapCtx.fillStyle="#bfe0f2";
+  mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
+  // ground, then overlay (flat details), then decor
+  for(let r=0;r<state.height;r++)for(let c=0;c<state.width;c++){
+    drawTileTo(mapCtx,state.ground[idx(c,r)],c*CELL,r*CELL,CELL);
+  }
+  for(let r=0;r<state.height;r++)for(let c=0;c<state.width;c++){
+    if(state.overlay) drawTileTo(mapCtx,state.overlay[idx(c,r)],c*CELL,r*CELL,CELL);
+  }
+  for(let r=0;r<state.height;r++)for(let c=0;c<state.width;c++){
+    drawTileTo(mapCtx,state.decor[idx(c,r)],c*CELL,r*CELL,CELL);
+  }
+  // grid
+  mapCtx.strokeStyle="rgba(45,62,80,0.10)";
+  for(let c=0;c<=state.width;c++){mapCtx.beginPath();mapCtx.moveTo(c*CELL,0);mapCtx.lineTo(c*CELL,mapCanvas.height);mapCtx.stroke();}
+  for(let r=0;r<=state.height;r++){mapCtx.beginPath();mapCtx.moveTo(0,r*CELL);mapCtx.lineTo(mapCanvas.width,r*CELL);mapCtx.stroke();}
+  // solid overlay
+  if(layer==="solid"){
+    mapCtx.fillStyle="rgba(224,122,122,0.50)";
+    for(let r=0;r<state.height;r++)for(let c=0;c<state.width;c++){
+      if(state.solid[idx(c,r)]) mapCtx.fillRect(c*CELL,r*CELL,CELL,CELL);
+    }
+  }
+  // entities
+  for(const e of state.entities) drawEntityMarker(e);
+  // player start
+  drawPlayerStart();
+}
+function drawEntityMarker(e){
+  const x=e.col*CELL, y=e.row*CELL;
+  const colors={npc:"#1c8fa8",enemy:"#d64545",item:"#3a9d4f"};
+  // sprite preview if we have one
+  const sp = e.kind==="npc"? e.sprite : e.kind==="enemy"? e.type : e.kind==="item"? null : null;
+  if(sp && spriteImgs[sp]){
+    mapCtx.drawImage(spriteImgs[sp],0,48,48,48,x,y,CELL,CELL); // row1 = facing down
+  } else if(e.kind==="item"){
+    drawTileTo(mapCtx,e.tile||"crops:85",x,y,CELL);
+  }
+  mapCtx.strokeStyle=colors[e.kind]||"#fff";
+  mapCtx.lineWidth=2;
+  mapCtx.strokeRect(x+1,y+1,CELL-2,CELL-2);
+  mapCtx.fillStyle=colors[e.kind]||"#fff";
+  mapCtx.font="8px monospace";
+  mapCtx.fillText((e.name||e.type||e.id||e.kind).slice(0,6),x+2,y+CELL-2);
+}
+function drawPlayerStart(){
+  const x=state.playerStart.col*CELL, y=state.playerStart.row*CELL;
+  mapCtx.strokeStyle="#ffd166";mapCtx.lineWidth=3;
+  mapCtx.strokeRect(x+1,y+1,CELL-2,CELL-2);
+  mapCtx.fillStyle="#c98a1a";mapCtx.font="bold 9px monospace";
+  mapCtx.fillText("P1",x+3,y+12);
+}
+
+// ---- Render the tile palette for the current tileset ----
+function renderPalette(){
+  const set=TILESETS[currentTileset], img=images[currentTileset];
+  if(!img) return;
+  const total=set.cols*Math.ceil(img.height/TILE);
+  const rows=Math.ceil(total/PALETTE_COLS);
+  const cell=Math.floor((palCanvas.parentElement.clientWidth-30)/PALETTE_COLS);
+  palCanvas.width=PALETTE_COLS*cell;
+  palCanvas.height=rows*cell;
+  palCtx.imageSmoothingEnabled=false;
+  palCtx.fillStyle="#eaf4ff";palCtx.fillRect(0,0,palCanvas.width,palCanvas.height);
+  for(let i=0;i<total;i++){
+    const c=i%PALETTE_COLS, r=Math.floor(i/PALETTE_COLS);
+    drawTileTo(palCtx,`${currentTileset}:${i}`,c*cell,r*cell,cell);
+    palCtx.strokeStyle="rgba(45,62,80,0.10)";
+    palCtx.strokeRect(c*cell,r*cell,cell,cell);
+    if(i===selectedTile){
+      palCtx.strokeStyle="#ffd166";palCtx.lineWidth=3;
+      palCtx.strokeRect(c*cell+1,r*cell+1,cell-2,cell-2);palCtx.lineWidth=1;
+    }
+  }
+  palCanvas._cell=cell; palCanvas._total=total;
+  updateSelInfo();
+}
+function updateSelInfo(){
+  const id=`${currentTileset}:${selectedTile}`;
+  document.getElementById("selText").textContent=id;
+  const sw=document.getElementById("swatch");
+  const sctx=sw.getContext?null:null;
+  // draw swatch via background using a tiny canvas
+  const t=document.createElement("canvas");t.width=48;t.height=48;
+  const tc=t.getContext("2d");tc.imageSmoothingEnabled=false;
+  drawTileTo(tc,id,0,0,48);
+  sw.style.backgroundImage=`url(${t.toDataURL()})`;
+  sw.style.backgroundSize="cover";
+}
+
+// ---- Mouse -> tile coords ----
+function cellFromEvent(canvas,e,cellSize){
+  const rect=canvas.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const y=(e.clientY-rect.top)*(canvas.height/rect.height);
+  return {c:Math.floor(x/cellSize),r:Math.floor(y/cellSize)};
+}
+
+// ---- Apply the current tool at a cell ----
+function applyAt(c,r){
+  if(c<0||r<0||c>=state.width||r>=state.height) return;
+  const id=idx(c,r);
+  if(layer==="ground"||layer==="overlay"||layer==="decor"){
+    const arr=state[layer];
+    if(tool==="erase") arr[id]="";
+    else if(tool==="paint") arr[id]=`${currentTileset}:${selectedTile}`;
+    else if(tool==="fill") floodFill(layer,c,r,arr[id],`${currentTileset}:${selectedTile}`);
+  } else if(layer==="solid"){
+    state.solid[id]= tool==="erase"?0:1;
+  } else if(layer==="entity"){
+    placeEntity(c,r);
+  }
+  renderMap();
+}
+function floodFill(layerName,c,r,from,to){
+  if(from===to) return;
+  const arr=state[layerName], stack=[[c,r]];
+  while(stack.length){
+    const [x,y]=stack.pop();
+    if(x<0||y<0||x>=state.width||y>=state.height) continue;
+    if(arr[idx(x,y)]!==from) continue;
+    arr[idx(x,y)]=to;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+}
+function placeEntity(c,r){
+  if(tool==="erase"){
+    state.entities=state.entities.filter(e=>!(e.col===c&&e.row===r));
+    return;
+  }
+  if(entityType==="player"){ state.playerStart={col:c,row:r}; return; }
+  // remove any existing entity in this cell first
+  state.entities=state.entities.filter(e=>!(e.col===c&&e.row===r));
+  const f=getEntityFieldValues();
+  if(entityType==="npc"){
+    state.entities.push({kind:"npc",col:c,row:r,sprite:f.sprite,frames:f.frames,
+      name:f.name,givesQuest:f.givesQuest||null,
+      dialogue:f.dialogue.split("|").map(s=>s.trim()).filter(Boolean)});
+  } else if(entityType==="enemy"){
+    state.entities.push({kind:"enemy",col:c,row:r,type:f.etype});
+  } else if(entityType==="item"){
+    state.entities.push({kind:"item",col:c,row:r,id:f.id,name:f.iname,tile:f.itile});
+  }
+}
+
+// ---- Entity field UI (changes with entity type) ----
+function renderEntityFields(){
+  const box=document.getElementById("entityFields");
+  if(entityType==="player"){ box.innerHTML=`<p class="legend">Click a tile to set where the player starts.</p>`; return; }
+  if(entityType==="npc"){
+    box.innerHTML=`
+      <label>NPC name</label><input id="f_name" value="Villager">
+      <label>Sprite</label><select id="f_sprite"><option>cow</option><option>chicken</option></select>
+      <label>Frames</label><input id="f_frames" type="number" value="8">
+      <label>Gives quest id (optional)</label><input id="f_quest" placeholder="carrot_hunt">
+      <label>Dialogue (separate pages with | )</label>
+      <input id="f_dialogue" value="Hello there!|Welcome to my map.">`;
+  } else if(entityType==="enemy"){
+    box.innerHTML=`<label>Enemy type</label><select id="f_etype"><option>slime</option><option>bat</option></select>`;
+  } else if(entityType==="item"){
+    box.innerHTML=`
+      <label>Item id (used by quests)</label><input id="f_id" value="carrot">
+      <label>Item name</label><input id="f_iname" value="Carrot">
+      <label>Tile (sheet:index)</label><input id="f_itile" value="crops:85">`;
+  }
+}
+function getEntityFieldValues(){
+  const g=id=>document.getElementById(id);
+  return {
+    name:g("f_name")?.value, sprite:g("f_sprite")?.value, frames:parseInt(g("f_frames")?.value||8),
+    givesQuest:g("f_quest")?.value, dialogue:g("f_dialogue")?.value||"...",
+    etype:g("f_etype")?.value||"slime",
+    id:g("f_id")?.value||"carrot", iname:g("f_iname")?.value||"Item", itile:g("f_itile")?.value||"crops:85",
+  };
+}
+
+// ---- Export to the EXACT format the game loads ----
+function exportMap(){
+  const SCALED=TILE*3; // game draws at scale 3, entities use pixel coords
+  const out={
+    name:document.getElementById("mapName").value,
+    width:state.width, height:state.height, tilesize:TILE,
+    ground:state.ground.slice(), overlay:(state.overlay||[]).slice(), decor:state.decor.slice(), solid:state.solid.slice(),
+    playerStart:{x:state.playerStart.col*SCALED, y:state.playerStart.row*SCALED},
+    music:document.getElementById("mapMusic").value,
+    quests:state.quests||[], // quests are edited by hand or kept from import
+    entities:state.entities.map(e=>{
+      const base={kind:e.kind,x:e.col*SCALED,y:e.row*SCALED};
+      if(e.kind==="npc")return{...base,sprite:e.sprite,frames:e.frames,name:e.name,givesQuest:e.givesQuest,dialogue:e.dialogue};
+      if(e.kind==="enemy")return{...base,type:e.type};
+      if(e.kind==="item")return{...base,id:e.id,name:e.name,tile:e.tile};
+      return base;
+    }),
+  };
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=(out.name||"map").replace(/\s+/g,"_").toLowerCase()+".json";
+  a.click();
+}
+
+// ---- Import (turns pixel coords back into editor tile coords) ----
+function importMap(data){
+  const SCALED=TILE*3;
+  state.width=data.width; state.height=data.height;
+  state.ground=data.ground.slice();
+  state.overlay=(data.overlay||new Array(data.ground.length).fill("")).slice();
+  state.decor=data.decor.slice(); state.solid=data.solid.slice();
+  state.quests=data.quests||[];
+  state.playerStart={col:Math.round(data.playerStart.x/SCALED),row:Math.round(data.playerStart.y/SCALED)};
+  state.entities=(data.entities||[]).map(e=>{
+    const base={kind:e.kind,col:Math.round(e.x/SCALED),row:Math.round(e.y/SCALED)};
+    if(e.kind==="npc")return{...base,sprite:e.sprite,frames:e.frames,name:e.name,givesQuest:e.givesQuest,dialogue:e.dialogue};
+    if(e.kind==="enemy")return{...base,type:e.type};
+    if(e.kind==="item")return{...base,id:e.id,name:e.name,tile:e.tile};
+    return base;
+  });
+  document.getElementById("mapName").value=data.name||"Imported Map";
+  document.getElementById("mapW").value=state.width;
+  document.getElementById("mapH").value=state.height;
+  resizeCanvas(); renderMap();
+}
+
+// =============================================================
+//  WIRE UP THE UI
+// =============================================================
+function setLayer(l){
+  layer=l;
+  document.querySelectorAll("#layerButtons button").forEach(b=>b.classList.toggle("active",b.dataset.layer===l));
+  document.getElementById("entityPanel").style.display = l==="entity"?"block":"none";
+  const help={ground:"The floor: grass, paths, water.",overlay:"Flat details (grass tufts, flowers) the player walks OVER.",decor:"Tall things on top: trees, bushes, houses.",solid:"Click tiles the player CANNOT walk through.",entity:"Place NPCs, enemies, items & player start."};
+  document.getElementById("layerHelp").textContent=help[l];
+  renderMap();
+}
+document.querySelectorAll("#layerButtons button").forEach(b=>b.onclick=()=>setLayer(b.dataset.layer));
+document.querySelectorAll("#toolButtons button").forEach(b=>b.onclick=()=>{
+  tool=b.dataset.tool;
+  document.querySelectorAll("#toolButtons button").forEach(x=>x.classList.toggle("active",x===b));
+});
+const tsSelect=document.getElementById("tilesetSelect");
+Object.keys(TILESETS).forEach(n=>{const o=document.createElement("option");o.value=o.textContent=n;tsSelect.appendChild(o);});
+tsSelect.onchange=()=>{currentTileset=tsSelect.value;selectedTile=0;renderPalette();};
+
+document.getElementById("entityType").onchange=e=>{entityType=e.target.value;renderEntityFields();};
+document.getElementById("resizeBtn").onclick=()=>{
+  const w=parseInt(document.getElementById("mapW").value),h=parseInt(document.getElementById("mapH").value);
+  if(confirm("Resizing clears the current map. Continue?")){blankMap(w,h);renderMap();}
+};
+document.getElementById("exportBtn").onclick=exportMap;
+document.getElementById("importBtn").onclick=()=>document.getElementById("importFile").click();
+document.getElementById("importFile").onchange=ev=>{
+  const file=ev.target.files[0];if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{try{importMap(JSON.parse(reader.result));}catch(err){alert("Could not read map: "+err.message);}};
+  reader.readAsText(file);
+};
+document.getElementById("loadStarterBtn").onclick=async()=>{
+  try{const r=await fetch("assets/map_meadow.json");importMap(await r.json());}
+  catch(e){alert("Run this from a web server (see workbook) to load the starter map.");}
+};
+
+// Palette click
+palCanvas.onclick=e=>{
+  const cell=palCanvas._cell;
+  const {c,r}=cellFromEvent(palCanvas,e,cell);
+  const i=r*PALETTE_COLS+c;
+  if(i>=0&&i<palCanvas._total){selectedTile=i;renderPalette();}
+};
+// Map paint (drag to paint)
+mapCanvas.onmousedown=e=>{painting=true;const{c,r}=cellFromEvent(mapCanvas,e,CELL);applyAt(c,r);};
+mapCanvas.onmousemove=e=>{if(!painting||layer==="entity"||tool==="fill")return;const{c,r}=cellFromEvent(mapCanvas,e,CELL);applyAt(c,r);};
+window.onmouseup=()=>painting=false;
+// Keyboard shortcuts
+window.addEventListener("keydown",e=>{
+  if(e.key==="1")setLayer("ground");if(e.key==="2")setLayer("overlay");
+  if(e.key==="3")setLayer("decor");if(e.key==="4")setLayer("solid");
+  if(e.key==="5")setLayer("entity");
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();exportMap();}
+});
+window.addEventListener("resize",renderPalette);
+
+// ---- Boot ----
+(async function(){
+  await loadAll();
+  blankMap(25,18);
+  setLayer("ground");
+  renderEntityFields();
+  renderPalette();
+  renderMap();
+})();
+</script>
+</body>
+</html>
