@@ -47,7 +47,7 @@ class Game {
 
         requestAnimationFrame(this.loop.bind(this))
     }
-    loop(timestamp){
+    loop(timestamp) {
         let dt = (timestamp - this.lastTime)/1000;
         this.lastTime = timestamp;
         if(dt > 0.05) dt = 0.05;
