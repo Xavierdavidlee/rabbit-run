@@ -13,3 +13,27 @@
 // ============================================================================
 
 // TODO: build this file here.
+export const CONFIG = {
+    TILE_SIZE: 16,
+    SCALE: 3,
+    VIEW_TILES_X: 16,
+    VIEW_TILES_Y: 12,
+    PLAYER_SPEED: 250,
+    PLAYER_FRAME_SIZE: 48,
+    PLAYER_MAX_HP: 20,
+    SOLID_TOP_INSET: 16,
+    ANIM_FPS: 8,
+    PLAYER_ATTACK_DAMAGE: 5,
+    PLAYER_ATTACK_RANGE: 24,
+    XP_BASE: 12,
+    XP_GROWTH: 1.5,
+    HP_PER_LEVEL: 6,
+    DAMAGE_PER_LEVEL: 2,
+    HEAL_ITEM_AMOUNT: 8,
+    SFX_VOLUME: 0.6,
+    MUSIC_VOLUME: 0.4,
+};
+
+CONFIG.SCALED_TILE = CONFIG.TILE_SIZE * CONFIG.SCALE;
+CONFIG.CANVAS_WIDTH = CONFIG.VIEW_TILES_X * CONFIG.SCALED_TILE;
+CONFIG.CANVAS_HEIGHT = CONFIG.VIEW_TILES_Y * CONFIG.SCALED_TILE;
