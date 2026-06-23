@@ -38,7 +38,7 @@ import { QuestLog } from "./quest.js"
 import { Dialogue } from "./dialogue.js";
 import { Battle } from "./battle.js";
 import { UI } from "./ui.js"
-
+import { Particles } from "./particles.js";
 const STATE = {
     LOADING : "loading",
     TITLE : "title",
@@ -123,6 +123,7 @@ class Game {
             }
             break;
        }
+       Particles.update(dt);
     }
     updatePlaying(dt){
         if(Input.wasPressed("KeyI")) {
@@ -234,7 +235,7 @@ class Game {
                 "Press Space to begin", "#ffd98a");
             return;
         }
-        
+        Particles.draw(ctx, this.camera);
         this.map.drawLayer(ctx, "ground", this.camera);
         this.map.drawLayer(ctx, "overlay", this.camera);
 
