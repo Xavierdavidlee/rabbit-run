@@ -26,13 +26,16 @@ const FRAMES = {idle: 5, run: 8, sword: 9};
 
 export class Player{
     constructor(x, y){
-        this.x = x;
+        this.x = x; 
         this.y = y;
-        this.width = 42;
-        this.height = 52;
-        const spriteSize = CONFIG.PLAYER_FRAME_SIZE * CONFIG.SCALE;
-        this.spriteOffsetX = (spriteSize - this.width) / 2;
-        this.spriteOffsetY = 42;
+        const FRAME = CONFIG.PLAYER_FRAME_SIZE;
+        const SCALE = CONFIG.SCALE;
+        const bodyPx = 16 * SCALE;
+        this.width = bodyPx;
+        this.height = bodyPx;
+
+        this.spriteOffsetX = 16 * SCALE;
+        this.spriteOffsetY = 16 * SCALE;
         this.dir = DIR.DOWN;
         this.moving = false;
         this.anim = new SpriteAnimator();
@@ -104,9 +107,10 @@ export class Player{
         if(Input.right){ dx += 1; this.dir = DIR.RIGHT;}
         if(Input.up){ dy -= 1; this.dir = DIR.UP;}
         if(Input.down){ dy += 1; this.dir = DIR.DOWN;}
-
+        
         this.moving = (dx !== 0 || dy !== 0);
         if(this.moving){
+            
             const len = Math.hypot(dx, dy);
             dx /= len;
             dy /= len;

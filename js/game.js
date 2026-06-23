@@ -235,6 +235,7 @@ class Game {
                 "Press Space to begin", "#ffd98a");
             return;
         }
+        
         Particles.draw(ctx, this.camera);
         this.map.drawLayer(ctx, "ground", this.camera);
         this.map.drawLayer(ctx, "overlay", this.camera);
