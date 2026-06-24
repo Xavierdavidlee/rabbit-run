@@ -23,7 +23,6 @@ import { SpriteAnimator } from "./sprite.js";
 import { Sound } from "./audio.js";
 
 const STATE = { IDLE : "idle", CHASE : "chase", HURT : "hurt", DEAD : "dead"}
-
 const TYPES = {
     slime : {
         idleSheet: "slime_idle", hurtSheet : "slime_hurt", deathSheet : "slime_death",
@@ -72,11 +71,12 @@ export class Enemy{
         this.centerY - (player.y + player.height/2));
     }
 
-    update(dt, player, map){
+    update(dt, player, map, wave){
+       
         if(this.attackCooldown>0) {
             this.attackCooldown -= dt;
         }
-       // console.log(this.distanceTo(player));
+        
         switch (this.state){
             case STATE.DEAD: {
                 this.deadTimer -= dt;
@@ -101,7 +101,7 @@ export class Enemy{
             case STATE.IDLE: {
                 this.anim.update(dt, this.def.idleFrames);
                // console.log(this.distanceTo(player) + " " + this.def.sightRange);
-                if (this.distanceTo(player) < this.def.sightRange) {
+                if (this.distanceTo(player)/1000 < this.def.sightRange*10000) {
                     this.state = STATE.CHASE;
                 }
                 break;
@@ -111,7 +111,7 @@ export class Enemy{
                 this.anim.update(dt, this.def.idleFrames);
                 const dist = this.distanceTo(player);
                 //console.log(dist + " " + this.type)
-                if (dist > this.def.sightRange * 1.5){
+                if (dist > this.def.sightRange * 1000){
                     this.state = STATE.IDLE;
                     break;
                 }
@@ -124,11 +124,13 @@ export class Enemy{
                 this.moveAxis(0, stepY, map);
 
                 if (dist < this.def.attackRange && this.attackCooldown <= 0){
-                    player.takeDamage(this.def.damage);
+                    const scaledDamage = this.def.damage + Math.floor(wave / 2);
+                    player.takeDamage(scaledDamage);
                     this.attackCooldown = 1.0;
                 }
                 break;
             }
+            
         }
     }
 
@@ -176,5 +178,7 @@ export class Enemy{
             ctx.fillStyle = "#3a2e3f"; ctx.fillRect(barX, barY, barW, 4);
             ctx.fillStyle = "#e85d75"; ctx.fillRect(barX, barY, barW * (this.hp/this.def.hp), 4);
         }
+        
     }
+    
 }

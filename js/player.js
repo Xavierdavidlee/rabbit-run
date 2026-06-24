@@ -86,7 +86,7 @@ export class Player{
     update(dt, map){
         if(this.invincibleTimer > 0) this.invincibleTimer -= dt;
         if(this.justLeveledTimer > 0) this.justLeveledTimer -= dt;
-
+        
         if(this.attacking){
             this.attackTimer -= dt;
             this.anim.update(dt, FRAMES.sword);

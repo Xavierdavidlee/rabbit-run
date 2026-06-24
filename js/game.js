@@ -51,11 +51,46 @@ const STATE = {
 
 class Game {
     constructor(canvas) {
+        this.wave = 0;
+        this.waveTimer = 0;
+        this.waveActive = false;
         this.ctx = canvas.getContext("2d");
         this.ctx.imageSmoothingEnabled = false;
         this.lastTime = 0;
         this.state = STATE.LOADING;
     }
+    startWave() {
+    const count = 2 + this.wave;
+    for (let i = 0; i < count; i++) {
+        this.spawnEnemyAtRandomEdge();
+    }
+    this.waveActive = true;
+}
+spawnEnemyAtRandomEdge() {
+    const side = Math.floor(Math.random() * 4);
+    let x = 0, y = 0;
+    if (side === 0) {
+        x = Math.random() * this.map.pixelWidth;
+        y = 0;
+    } 
+    else if (side === 1) {
+        x = this.map.pixelWidth;
+        y = Math.random() * this.map.pixelHeight;
+    } 
+    else if (side === 2) { 
+        x = Math.random() * this.map.pixelWidth;
+        y = this.map.pixelHeight;
+    } 
+    else {
+        x = 0;
+        y = Math.random() * this.map.pixelHeight;
+    }
+    this.enemies.push(new Enemy({
+        x,
+        y,
+        type: Math.random() < 0.7 ? "slime" : "bat"
+    }));
+}
     async boot(){
         await loadAllAssets();
         const res = await fetch("assets/map_meadow.json");
@@ -153,7 +188,7 @@ class Game {
         Battle.resolvePlayerAttack(this.player, this.enemies, this.questLog);
 
         for(const enemy of this.enemies){
-            enemy.update(dt, this.player, this.map);
+            enemy.update(dt, this.player, this.map, this.wave);
         }
         this.enemies = this.enemies.filter(e=>!e.dead);
 
@@ -178,6 +213,17 @@ class Game {
         }
         
         this.camera.follow(this.player, this.map);
+        if (this.enemies.length === 0 && this.waveActive) {
+    this.waveActive = false;
+    this.waveTimer = 2;
+}
+if (!this.waveActive) {
+    this.waveTimer -= dt;
+    if (this.waveTimer <= 0) {
+        this.wave++;
+        this.startWave();
+    }
+}
     }
 
     startConversation(npc){
@@ -263,6 +309,15 @@ class Game {
         if(this.state === STATE.WIN){
             UI.drawScreen(ctx, "You Win!", "Every quest complete! Enter for title", "#9ad9b0");
         }
+        if (this.state === STATE.PLAYING) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "red";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "right";
+        const x = CONFIG.CANVAS_WIDTH - 20;
+        ctx.fillText(`Wave: ${this.wave}`, x, 30);
+        ctx.fillText(`Enemies: ${this.enemies.length}`, x, 50);
+}
     }
 }
 window.addEventListener("load", ()=> {
