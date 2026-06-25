@@ -32,7 +32,6 @@ export const Battle = {
             && point.y >= enemy.y && point.y <= enemy.y + enemy.height;
             //console.log(point.x + " " + point.y + " " + enemy.x + " " + enemy.y);
             if(inside){
-                //console.log(inside);
                 const wasAlive = enemy.hp > 0;
                 enemy.takeDamage(player.attackDamage);
                 player.attackHasHit = true;

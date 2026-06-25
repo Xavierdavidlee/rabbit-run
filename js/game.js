@@ -71,19 +71,27 @@ spawnEnemyAtRandomEdge() {
     let x = 0, y = 0;
     if (side === 0) {
         x = Math.random() * this.map.pixelWidth;
-        y = 0;
+        if(x<144){x=144}
+        if(x>this.map.pixelWidth){x=this.map.pixelWidth}
+        y = 144;
     } 
     else if (side === 1) {
-        x = this.map.pixelWidth;
+        x = this.map.pixelWidth-144;
         y = Math.random() * this.map.pixelHeight;
+        if (y<144){y=144}
+        if (y>this.map.pixelHeight-144){y=this.map.pixelHeight=144}
     } 
     else if (side === 2) { 
         x = Math.random() * this.map.pixelWidth;
-        y = this.map.pixelHeight;
+        if(x<144){x=144}
+        if(x>this.map.pixelWidth){x=this.map.pixelWidth}
+        y = this.map.pixelHeight-144;
     } 
     else {
-        x = 0;
-        y = Math.random() * this.map.pixelHeight;
+        x = 144;
+        y = Math.random() * this.map.pixelHeight-144;
+        if (y<144){y=144}
+        if (y>this.map.pixelHeight-144){y=this.map.pixelHeight=144}
     }
     this.enemies.push(new Enemy({
         x,
