@@ -19,10 +19,10 @@
 import { CONFIG } from "./config.js";
 import { Input } from "./input.js";
 import { Images } from "./assets.js";
-import { SpriteAnimator, DIR } from "./sprite.js";
+import { SpriteAnimator, DIR, DIR1 } from "./sprite.js";
 import { Sound } from "./audio.js";
 
-const FRAMES = {idle: 5, run: 8, sword: 9};
+const FRAMES = {idle: 4, run: 4, sword: 4};
 
 export class Player{
     constructor(x, y){
@@ -36,7 +36,7 @@ export class Player{
 
         this.spriteOffsetX = 16 * SCALE;
         this.spriteOffsetY = 16 * SCALE;
-        this.dir = DIR.DOWN;
+        this.dir = DIR1.DOWN;
         this.moving = false;
         this.anim = new SpriteAnimator();
 
@@ -103,10 +103,10 @@ export class Player{
         }
 
         let dx = 0, dy = 0;
-        if(Input.left){ dx -= 1; this.dir = DIR.LEFT;}
-        if(Input.right){ dx += 1; this.dir = DIR.RIGHT;}
-        if(Input.up){ dy -= 1; this.dir = DIR.UP;}
-        if(Input.down){ dy += 1; this.dir = DIR.DOWN;}
+        if(Input.left){ dx -= 1; this.dir = DIR1.LEFT;}
+        if(Input.right){ dx += 1; this.dir = DIR1.RIGHT;}
+        if(Input.up){ dy -= 1; this.dir = DIR1.UP;}
+        if(Input.down){ dy += 1; this.dir = DIR1.DOWN;}
         
         this.moving = (dx !== 0 || dy !== 0);
         if(this.moving){
@@ -148,9 +148,9 @@ export class Player{
         const cx = this.x + this.width / 2;
         const cy = this.y + this.height / 2;
         const r = CONFIG.PLAYER_ATTACK_RANGE;
-        if(this.dir === DIR.LEFT) return { x: cx - r, y: cy };
-        if(this.dir === DIR.RIGHT) return { x: cx + r, y: cy };
-        if(this.dir === DIR.UP) return { x: cx, y: cy - r };
+        if(this.dir === DIR1.LEFT) return { x: cx - r, y: cy };
+        if(this.dir === DIR1.RIGHT) return { x: cx + r, y: cy };
+        if(this.dir === DIR1.UP) return { x: cx, y: cy - r };
         return { x: cx, y: cy + r };
     }
 
@@ -172,5 +172,8 @@ export class Player{
         const screenY = Math.round(this.y - this.spriteOffsetY - camera.y);
         const sheet = this.attacking ? "bunny_sword" : (this.moving ? "bunny_run" : "bunny_idle");
         this.anim.draw(ctx, sheet, this.dir, screenX, screenY);
+        if(this.dir === 3){this.anim.drawR(ctx, sheet, this.dir-3, screenX, screenY);}
     }
+
+    
 }

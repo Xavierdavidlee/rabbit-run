@@ -48,6 +48,15 @@ export class SpriteAnimator{
         const size = this.frameSize * CONFIG.SCALE;
         ctx.drawImage(img, sx, sy, this.frameSize, this.frameSize, x, y, size, size);
     }
+    drawR(ctx, imageName, row, x, y){
+        const img = Images[imageName += "_R"];
+        if(!img) return;
+        const sx = this.frameIndex * this.frameSize;
+        const sy = row * this.frameSize;
+        const size = this.frameSize * CONFIG.SCALE;
+        ctx.drawImage(img, sx, sy, this.frameSize, this.frameSize, x, y, size, size);
+    }
 }
 
-export const DIR = {UP: 0, DOWN: 3, LEFT: 2, RIGHT: 1};
+export const DIR = {UP: 0, DOWN: 3, LEFT: 2};
+export const DIR1 = {UP: 1, DOWN: 0, LEFT: 2, RIGHT: 3};
