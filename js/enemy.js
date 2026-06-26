@@ -34,6 +34,11 @@ const TYPES = {
         idleFrames : 4, hurtFrames : 2, deathFrames : 5,
         hp : 6, speed:60, damage:2, sightRange:160, attackRange:28, xp:4,
     },
+    rat : {
+        idleSheet: "rat_idle", idleSheetR: "rat_idle_R", hurtSheet : "rat_hurt", hurtSheetR: "rat_hurt_R", deathSheet : "rat_death", deathSheetR: "rat_death_R",
+        idleFrames : 4, hurtFrames : 4, deathFrames : 8,
+        hp : 3, speed:90, damage:6, sightRange:120, attackRange:20, xp:2,
+    },
 };
 
 export class Enemy{

@@ -4815,6 +4815,7 @@
     "y": 912
   },
   "music": "town_theme",
+  
   "quests": [
     {
       "id": "carrot_hunt",
@@ -5023,6 +5024,7 @@
         "You are forever a Hero of the Valley. Thank you."
       ]
     },
+   
     {
       "kind": "item",
       "x": 192,
@@ -5090,54 +5092,8 @@
       "name": "Berry",
       "tile": "crops:82",
       "heal": 8
-    },
-    {
-      "kind": "enemy",
-      "x": 576,
-      "y": 576,
-      "type": "slime"
-    },
-    {
-      "kind": "enemy",
-      "x": 1440,
-      "y": 672,
-      "type": "slime"
-    },
-    {
-      "kind": "enemy",
-      "x": 816,
-      "y": 528,
-      "type": "slime"
-    },
-    {
-      "kind": "enemy",
-      "x": 1584,
-      "y": 1296,
-      "type": "slime"
-    },
-    {
-      "kind": "enemy",
-      "x": 336,
-      "y": 1248,
-      "type": "slime"
-    },
-    {
-      "kind": "enemy",
-      "x": 1104,
-      "y": 672,
-      "type": "bat"
-    },
-    {
-      "kind": "enemy",
-      "x": 720,
-      "y": 768,
-      "type": "bat"
-    },
-    {
-      "kind": "enemy",
-      "x": 1392,
-      "y": 528,
-      "type": "bat"
     }
-  ]
+    
+]
+    
 }

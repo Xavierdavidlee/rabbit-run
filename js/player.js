@@ -22,7 +22,7 @@ import { Images } from "./assets.js";
 import { SpriteAnimator, DIR, DIR1 } from "./sprite.js";
 import { Sound } from "./audio.js";
 
-const FRAMES = {idle: 4, run: 4, sword: 4};
+const FRAMES = {idle: 4, run: 6, sword: 4};
 
 export class Player{
     constructor(x, y){
