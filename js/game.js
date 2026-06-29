@@ -93,11 +93,13 @@ spawnEnemyAtRandomEdge() {
         if (y<144){y=144}
         if (y>this.map.pixelHeight-144){y=this.map.pixelHeight=144}
     }
-    this.enemies.push(new Enemy({
-        x,
-        y,
-        type: Math.random() < 0.7 ? "slime" : "bat"
-    }));
+    const rand = Math.floor(Math.random() * 3);
+
+this.enemies.push(new Enemy({
+    x,
+    y,
+    type: rand === 0 ? "slime" : rand === 1 ? "bat" : "rat"
+}));
 }
     async boot(){
         await loadAllAssets();

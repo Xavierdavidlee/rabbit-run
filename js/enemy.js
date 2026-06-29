@@ -27,7 +27,8 @@ const TYPES = {
     slime : {
         idleSheet: "slime_idle", hurtSheet : "slime_hurt", deathSheet : "slime_death",
         idleFrames : 8, hurtFrames : 2, deathFrames : 4,
-        hp : 10, speed:35, damage:3, sightRange:120, attackRange:30, xp:5,
+        hp : 15, speed:20, damage:3, sightRange:120, attackRange:30, xp:5,
+        scale: 1.2
     },
     bat : {
         idleSheet: "bat_idle", hurtSheet : "bat_hurt", deathSheet : "bat_death",
@@ -35,9 +36,10 @@ const TYPES = {
         hp : 6, speed:60, damage:2, sightRange:160, attackRange:28, xp:4,
     },
     rat : {
-        idleSheet: "rat_idle", idleSheetR: "rat_idle_R", hurtSheet : "rat_hurt", hurtSheetR: "rat_hurt_R", deathSheet : "rat_death", deathSheetR: "rat_death_R",
+        idleSheet: "rat_idle", hurtSheet : "rat_hurt", deathSheet : "rat_death",
         idleFrames : 4, hurtFrames : 4, deathFrames : 8,
         hp : 3, speed:90, damage:6, sightRange:120, attackRange:20, xp:2,
+        scale: 0.3
     },
 };
 
@@ -46,13 +48,14 @@ export class Enemy{
         this.type = data.type || "slime";
         const t = TYPES[this.type];
         this.def = t;
+        this.scale = t.scale || 1.0;
 
         this.x = data.x;
         this.y = data.y;
         this.homeX = data.x
         this.homeY = data.y
-        this.width = CONFIG.SCALED_TILE;
-        this.height = CONFIG.SCALED_TILE;
+        this.width = CONFIG.SCALED_TILE * this.scale;
+        this.height = CONFIG.SCALED_TILE * this.scale;
 
         this.hp = t.hp;
         this.xpReward = t.xp || 3;
@@ -161,10 +164,11 @@ export class Enemy{
     }
 
     draw(ctx, camera){
-        const offset = (CONFIG.PLAYER_FRAME_SIZE * CONFIG.SCALE - this.width) / 2;
-        const sx = this.x - offset - camera.x;
-        const sy = this.y - (CONFIG.PLAYER_FRAME_SIZE * CONFIG.SCALE - this.height) + 6 - camera.y;
+        const spriteSize = CONFIG.PLAYER_FRAME_SIZE * CONFIG.SCALE * this.scale;
 
+        const offset = (spriteSize - this.width) / 2;
+        const sx = this.x - offset - camera.x;
+        const sy = this.y - (spriteSize - this.height) + 6 - camera.y;
         let sheet = this.def.idleSheet, frames = this.def.idleFrames, row = 0;
         if(this.state === STATE.HURT) { 
             sheet = this.def.hurtSheet;
@@ -176,8 +180,7 @@ export class Enemy{
             row = 0;
         }
 
-        this.anim.draw(ctx, sheet, row, sx, sy);
-
+        this.anim.draw(ctx, sheet, row, sx, sy, this.scale);
         if (this.state !== STATE.DEAD){
             const barW = this.width, barX = this.x - camera.x, barY = this.y - camera.y - 8;
             ctx.fillStyle = "#3a2e3f"; ctx.fillRect(barX, barY, barW, 4);
@@ -185,5 +188,8 @@ export class Enemy{
         }
         
     }
+    get body(){
+    return { x: this.x, y: this.y, w: this.width, h: this.height };
+}
     
 }

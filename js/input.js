@@ -20,8 +20,9 @@ const pressed = {}; //save keys pressed down once
 
 window.addEventListener("keydown", (e) => {
 
-    if(!held[e.code])
+    if(!held[e.code]){
         pressed[e.code] = true;
+    }
         held[e.code] = true;
 
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {

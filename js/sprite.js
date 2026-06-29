@@ -40,14 +40,24 @@ export class SpriteAnimator{
 
     reset(){this.frameIndex = 0; this.timer = 0;}
 
-    draw(ctx, imageName, row, x, y){
+    
+    draw(ctx, imageName, row, x, y, scale = 1){
         const img = Images[imageName];
         if(!img) return;
+
         const sx = this.frameIndex * this.frameSize;
         const sy = row * this.frameSize;
-        const size = this.frameSize * CONFIG.SCALE;
-        ctx.drawImage(img, sx, sy, this.frameSize, this.frameSize, x, y, size, size);
-    }
+
+        const size = this.frameSize * CONFIG.SCALE * scale;
+
+        ctx.drawImage(
+            img,
+            sx, sy,
+            this.frameSize, this.frameSize,
+            x, y,
+            size, size
+    );
+}
     drawR(ctx, imageName, row, x, y){
         const img = Images[imageName += "_R"];
         if(!img) return;

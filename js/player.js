@@ -23,19 +23,20 @@ import { SpriteAnimator, DIR, DIR1 } from "./sprite.js";
 import { Sound } from "./audio.js";
 
 const FRAMES = {idle: 4, run: 6, sword: 4};
-
+const BASE_SIZE  = 16;
 export class Player{
-    constructor(x, y){
+    constructor(x, y){  
         this.x = x; 
         this.y = y;
-        const FRAME = CONFIG.PLAYER_FRAME_SIZE;
-        const SCALE = CONFIG.SCALE;
-        const bodyPx = 16 * SCALE;
-        this.width = bodyPx;
-        this.height = bodyPx;
+        this.scale = CONFIG.SCALE;
 
-        this.spriteOffsetX = 16 * SCALE;
-        this.spriteOffsetY = 16 * SCALE;
+        this.spriteSize = 48 * this.scale;
+
+        this.width = 24 * this.scale;
+        this.height = 24 * this.scale;
+
+        this.spriteOffsetX = (this.spriteSize - this.width) / 2;
+        this.spriteOffsetY = (this.spriteSize - this.height) / 2;
         this.dir = DIR1.DOWN;
         this.moving = false;
         this.anim = new SpriteAnimator();
@@ -145,21 +146,22 @@ export class Player{
     }
 
     getAttackPoint(){
-        const cx = this.x + this.width / 2;
-        const cy = this.y + this.height / 2;
-        const r = CONFIG.PLAYER_ATTACK_RANGE;
-        if(this.dir === DIR1.LEFT) return { x: cx - r, y: cy };
-        if(this.dir === DIR1.RIGHT) return { x: cx + r, y: cy };
-        if(this.dir === DIR1.UP) return { x: cx, y: cy - r };
-        return { x: cx, y: cy + r };
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+    const r = CONFIG.PLAYER_ATTACK_RANGE;
+
+    if(this.dir === DIR1.LEFT){
+        return { x: cx - r, y: cy - 10, w: r, h: 20 };
+    }
+    if(this.dir === DIR1.RIGHT){
+        return { x: cx, y: cy - 10, w: r, h: 20 };
+    }
+    if(this.dir === DIR1.UP){
+        return { x: cx - 10, y: cy - r, w: 20, h: r };
     }
 
-    takeDamage(amount){
-        if(this.invincibleTimer > 0) return;
-        this.hp = Math.max(0, this.hp - amount);
-        this.invincibleTimer = 0.8;
-        Sound.play("hit");
-    }
+    return { x: cx - 10, y: cy, w: 20, h: r };
+}
 
     get isDead(){ return this.hp <= 0; }
 
@@ -168,12 +170,19 @@ export class Player{
             return;
         }
 
-        const screenX = Math.round(this.x - this.spriteOffsetX - camera.x);
-        const screenY = Math.round(this.y - this.spriteOffsetY - camera.y);
+        const screenX = this.x - camera.x - this.spriteOffsetX;
+        const screenY = this.y - camera.y - this.spriteOffsetY;
         const sheet = this.attacking ? "bunny_sword" : (this.moving ? "bunny_run" : "bunny_idle");
         this.anim.draw(ctx, sheet, this.dir, screenX, screenY);
         if(this.dir === 3){this.anim.drawR(ctx, sheet, this.dir-3, screenX, screenY);}
     }
+    takeDamage(amount){
+    if(this.invincibleTimer > 0) return;
 
+    this.hp = Math.max(0, this.hp - amount);
+    this.invincibleTimer = 0.8;
+
+    Sound.play("hit");
+}
     
 }
