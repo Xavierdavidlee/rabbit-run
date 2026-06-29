@@ -26,6 +26,7 @@ const FRAMES = {idle: 4, run: 6, sword: 4};
 const BASE_SIZE  = 16;
 export class Player{
     constructor(x, y){  
+        this.attackSpeed = 0;
         this.x = x; 
         this.y = y;
         this.scale = CONFIG.SCALE;
@@ -85,23 +86,26 @@ export class Player{
     }
 
     update(dt, map){
+        if (this.attackSpeed > 0) {
+        this.attackSpeed -= dt;
+        }
         if(this.invincibleTimer > 0) this.invincibleTimer -= dt;
         if(this.justLeveledTimer > 0) this.justLeveledTimer -= dt;
         
-        if(this.attacking){
-            this.attackTimer -= dt;
-            this.anim.update(dt, FRAMES.sword);
-            if(this.attackTimer <= 0){
-                this.attacking = false;
-                this.anim.reset();
-            }
-            return;
-        }
+        if (this.attacking) {
+    this.attackTimer -= dt;
+    this.anim.update(dt, FRAMES.sword);
 
-        if(Input.wasPressed("Space")){
-            this.startAttack();
-            return;
-        }
+    if (this.attackTimer <= 0) {
+        this.attacking = false;
+        this.anim.reset();
+    }
+}
+
+    if (!this.attacking && this.attackSpeed <= 0) {
+    this.startAttack();
+    return;
+}
 
         let dx = 0, dy = 0;
         if(Input.left){ dx -= 1; this.dir = DIR1.LEFT;}
@@ -140,6 +144,7 @@ export class Player{
     startAttack(){
         this.attacking = true;
         this.attackTimer = FRAMES.sword / CONFIG.ANIM_FPS;
+        this.attackSpeed = 2;
         this.attackHasHit = false;
         this.anim.reset();
         Sound.play("attack");
