@@ -279,7 +279,7 @@ if (!this.waveActive) {
 
     draw(){
         const ctx = this.ctx;
-        ctx.fillStyle = "bfe0f2";
+        ctx.fillStyle = "#bfe0f2";
         ctx.fillRect(0,0,CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
         
         if(this.state === STATE.LOADING){

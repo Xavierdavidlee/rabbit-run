@@ -21,6 +21,8 @@ export const TILESETS = {
   house:      { image: "house",      cols: 38 },
   crops:      { image: "crops",      cols: 6  },
   floor:      { image: "floor",      cols: 11 },
+  tile:       { image: "tile",       cols: 21 },
+  object:     { image: "object",     cols: 21 },
 };
 
 // Given "sheet:index", draw that single tile at screen (x, y).

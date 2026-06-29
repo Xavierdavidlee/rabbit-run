@@ -16,6 +16,8 @@ const IMAGE_FILES = {
   house:      "assets/tilesets/house.png",
   crops:      "assets/tilesets/crops.png",
   floor:      "assets/tilesets/floor_detail.png",
+  tile:       "assets/tilesets/tile.png",
+  object:     "assets/tilesets/object.png",
   chest:      "assets/tilesets/chest.png",
   campfire:   "assets/tilesets/campfire.png",
 
