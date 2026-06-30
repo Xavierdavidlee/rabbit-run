@@ -8,6 +8,7 @@ export const Battle = {
         if(!player.attacking || player.attackHasHit) return;
 
         const box = player.getAttackPoint();
+        let hitSomething = false;
         
         
 
@@ -19,16 +20,18 @@ export const Battle = {
                 const wasAlive = enemy.hp > 0;
 
                 enemy.takeDamage(player.attackDamage);
-                player.attackHasHit = true;
+                hitSomething = true;
 
                 if(wasAlive && enemy.hp <= 0){
                     questLog.onDefeat(enemy.type);
                     player.gainXP(enemy.xpReward);
                     Particles.burst(enemy.centerX, enemy.centerY, "#9ad9b0", 22);
                 }
-
-                break;
             }
+        }
+
+        if(hitSomething){
+            player.attackHasHit = true;
         }
     }
 };

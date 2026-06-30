@@ -30,10 +30,11 @@ export class SpriteAnimator{
         this.frameDuration = 1/CONFIG.ANIM_FPS;
     }
 
-    update(dt, frameCount){
+    update(dt, frameCount, fps = CONFIG.ANIM_FPS){
         this.timer += dt;
-        if(this.timer >= this.frameDuration){
-            this.timer -= this.frameDuration;
+        const frameDuration = 1 / fps;
+        if(this.timer >= frameDuration){
+            this.timer -= frameDuration;
             this.frameIndex = (this.frameIndex + 1) % frameCount;
         }
     }

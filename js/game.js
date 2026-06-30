@@ -60,7 +60,7 @@ class Game {
         this.state = STATE.LOADING;
     }
     startWave() {
-    const count = 2 + this.wave;
+    const count = 2 + this.wave*20;
     for (let i = 0; i < count; i++) {
         this.spawnEnemyAtRandomEdge();
     }
@@ -72,26 +72,26 @@ spawnEnemyAtRandomEdge() {
     if (side === 0) {
         x = Math.random() * this.map.pixelWidth;
         if(x<144){x=144}
-        if(x>this.map.pixelWidth){x=this.map.pixelWidth}
+        if(x>this.map.pixelWidth-144){x=this.map.pixelWidth-144}
         y = 144;
     } 
     else if (side === 1) {
         x = this.map.pixelWidth-144;
         y = Math.random() * this.map.pixelHeight;
         if (y<144){y=144}
-        if (y>this.map.pixelHeight-144){y=this.map.pixelHeight=144}
+        if (y>this.map.pixelHeight-144){y=this.map.pixelHeight-144}
     } 
     else if (side === 2) { 
-        x = Math.random() * this.map.pixelWidth;
-        if(x<144){x=144}
-        if(x>this.map.pixelWidth){x=this.map.pixelWidth}
         y = this.map.pixelHeight-144;
+        x = Math.random() * this.map.pixelWidth;
+        if(x<144){x=144};
+        if(x>this.map.pixelWidth-144){x=this.map.pixelWidth-144}
     } 
     else {
         x = 144;
         y = Math.random() * this.map.pixelHeight-144;
         if (y<144){y=144}
-        if (y>this.map.pixelHeight-144){y=this.map.pixelHeight=144}
+        if (y>this.map.pixelHeight-144){y=this.map.pixelHeight-144}
     }
     const rand = Math.floor(Math.random() * 3);
 

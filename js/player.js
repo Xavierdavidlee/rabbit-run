@@ -86,26 +86,27 @@ export class Player{
     }
 
     update(dt, map){
+        const wasAttacking = this.attacking;
+
         if (this.attackSpeed > 0) {
-        this.attackSpeed -= dt;
+            this.attackSpeed -= dt;
         }
         if(this.invincibleTimer > 0) this.invincibleTimer -= dt;
         if(this.justLeveledTimer > 0) this.justLeveledTimer -= dt;
         
         if (this.attacking) {
-    this.attackTimer -= dt;
-    this.anim.update(dt, FRAMES.sword);
+            this.attackTimer -= dt;
+            this.anim.update(dt, FRAMES.sword, CONFIG.ATTACK_ANIM_FPS);
 
-    if (this.attackTimer <= 0) {
-        this.attacking = false;
-        this.anim.reset();
-    }
-}
+            if (this.attackTimer <= 0) {
+                this.attacking = false;
+                this.anim.reset();
+            }
+        }
 
-    if (!this.attacking && this.attackSpeed <= 0) {
-    this.startAttack();
-    return;
-}
+        if (!wasAttacking && !this.attacking && this.attackSpeed <= 0) {
+            this.startAttack();
+        }
 
         let dx = 0, dy = 0;
         if(Input.left){ dx -= 1; this.dir = DIR1.LEFT;}
@@ -115,7 +116,6 @@ export class Player{
         
         this.moving = (dx !== 0 || dy !== 0);
         if(this.moving){
-            
             const len = Math.hypot(dx, dy);
             dx /= len;
             dy /= len;
@@ -123,8 +123,8 @@ export class Player{
             const stepY = dy * CONFIG.PLAYER_SPEED * dt;
             this.moveAxis(stepX, 0, map);
             this.moveAxis(0, stepY, map);
-            this.anim.update(dt, FRAMES.run);
-        }else{
+            if (!this.attacking) this.anim.update(dt, FRAMES.run);
+        } else if (!this.attacking) {
             this.anim.update(dt, FRAMES.idle);
         }
     }
@@ -142,9 +142,11 @@ export class Player{
     }
 
     startAttack(){
+        if(this.attacking) return;
+
         this.attacking = true;
-        this.attackTimer = FRAMES.sword / CONFIG.ANIM_FPS;
-        this.attackSpeed = 2;
+        this.attackTimer = FRAMES.sword / CONFIG.ATTACK_ANIM_FPS;
+        this.attackSpeed = .5;
         this.attackHasHit = false;
         this.anim.reset();
         Sound.play("attack");
