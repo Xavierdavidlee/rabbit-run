@@ -19,8 +19,9 @@
 
 // TODO: build this file here.
 import { CONFIG } from "./config.js";
-import { SpriteAnimator } from "./sprite.js";
+import { SpriteAnimator, DIR1 } from "./sprite.js";
 import { Sound } from "./audio.js";
+import { Floaters } from "./particles.js";
 
 const STATE = { IDLE : "idle", CHASE : "chase", HURT : "hurt", DEAD : "dead"}
 const TYPES = {
@@ -99,7 +100,6 @@ export class Enemy{
                 this.anim.update(dt, this.def.hurtFrames);
                 if(this.hurtTimer <= 0){
                     this.state = (this.hp <= 0) ? STATE.DEAD : STATE.CHASE;
-                   // console.log(this.state);
                     if (this.state === STATE.DEAD){
                         this.startDeath()
                     }
@@ -108,7 +108,6 @@ export class Enemy{
             }
             case STATE.IDLE: {
                 this.anim.update(dt, this.def.idleFrames);
-               // console.log(this.distanceTo(player) + " " + this.def.sightRange);
                 if (this.distanceTo(player)/1000 < this.def.sightRange*10000) {
                     this.state = STATE.CHASE;
                 }
@@ -125,6 +124,11 @@ export class Enemy{
                 }
                 const dx = (player.x+player.width/2) - this.centerX;
                 const dy = (player.y + player.height/2) - this.centerY;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    this.dir = dx > 0 ? DIR1.RIGHT : DIR1.LEFT;
+                } else if (Math.abs(dy) > 0) {
+                    this.dir = dy > 0 ? DIR1.DOWN : DIR1.UP;
+                }
                 const len = Math.hypot(dx, dy) || 1;
                 const stepX = (dx/len) * this.def.speed * dt;
                 const stepY = (dy/len) * this.def.speed * dt;
@@ -155,12 +159,14 @@ export class Enemy{
         this.hurtTimer = 0.25;
         this.anim.reset();
         Sound.play(this.hp <= 0 ? "enemy_down" : "hit");
+        Floaters.spawn(this.centerX, this.centerY, `-${amount}`, "#ff8a8a");
     }
 
     startDeath(){
         this.state = STATE.DEAD;
         this.deadTimer = this.def.deathFrames / CONFIG.ANIM_FPS;
-        this.anim.reset()
+        this.anim.reset();
+        Floaters.spawn(this.centerX, this.centerY, `+${this.xpReward} XP`, "#ffd98a");
     }
 
     draw(ctx, camera){
@@ -169,7 +175,7 @@ export class Enemy{
         const offset = (spriteSize - this.width) / 2;
         const sx = this.x - offset - camera.x;
         const sy = this.y - (spriteSize - this.height) + 6 - camera.y;
-        let sheet = this.def.idleSheet, frames = this.def.idleFrames, row = 0;
+        let sheet = this.def.idleSheet, frames = this.def.idleFrames, row = this.dir;
         if(this.state === STATE.HURT) { 
             sheet = this.def.hurtSheet;
             frames = this.def.hurtFrames;
@@ -180,7 +186,11 @@ export class Enemy{
             row = 0;
         }
 
-        this.anim.draw(ctx, sheet, row, sx, sy, this.scale);
+        if (this.type === "rat" && row === DIR1.RIGHT) {
+            this.anim.drawR(ctx, sheet, row - 3, sx, sy, this.scale);
+        } else {
+            this.anim.draw(ctx, sheet, row, sx, sy, this.scale);
+        }
         if (this.state !== STATE.DEAD){
             const barW = this.width, barX = this.x - camera.x, barY = this.y - camera.y - 8;
             ctx.fillStyle = "#3a2e3f"; ctx.fillRect(barX, barY, barW, 4);

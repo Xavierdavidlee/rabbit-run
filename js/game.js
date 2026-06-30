@@ -54,6 +54,7 @@ class Game {
         this.wave = 0;
         this.waveTimer = 0;
         this.waveActive = false;
+        this.timeElapsed = 0;
         this.ctx = canvas.getContext("2d");
         this.ctx.imageSmoothingEnabled = false;
         this.lastTime = 0;
@@ -127,6 +128,9 @@ this.enemies.push(new Enemy({
             else if (e.kind === "item") this.items.push(new Item(e));
         }
         Sound.playMusic(this.mapData.music || "town_theme");
+        this.wave = 1;
+        this.timeElapsed = 0;
+        this.startWave();
     }
 
     loop(timestamp){
@@ -223,17 +227,13 @@ this.enemies.push(new Enemy({
         }
         
         this.camera.follow(this.player, this.map);
-        if (this.enemies.length === 0 && this.waveActive) {
-    this.waveActive = false;
-    this.waveTimer = 2;
-}
-if (!this.waveActive) {
-    this.waveTimer -= dt;
-    if (this.waveTimer <= 0) {
-        this.wave++;
-        this.startWave();
-    }
-}
+        this.timeElapsed += dt;
+        const newWave = Math.floor(this.timeElapsed / 60) + 1;
+
+        if (newWave > this.wave) {
+            this.wave = newWave;
+            this.startWave();
+        }
     }
 
     startConversation(npc){
