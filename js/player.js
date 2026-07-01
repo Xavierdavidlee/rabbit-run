@@ -26,7 +26,8 @@ const FRAMES = {idle: 4, run: 6, sword: 4};
 const BASE_SIZE  = 16;
 export class Player{
     constructor(x, y){  
-        this.attackSpeed = 0;
+        this.attackSpeed = 1;
+        this.attackCd = 0;
         this.x = x; 
         this.y = y;
         this.scale = CONFIG.SCALE;
@@ -44,11 +45,12 @@ export class Player{
 
         this.hp = CONFIG.PLAYER_MAX_HP;
         this.maxHp = CONFIG.PLAYER_MAX_HP;
-
+        this.armor = CONFIG.PLAYER_ARMOR;
         this.level = 1;
         this.xp = 0;
         this.xpToNext = CONFIG.XP_BASE;
         this.attackDamage = CONFIG.PLAYER_ATTACK_DAMAGE;
+        this.moveSpeed = CONFIG.PLAYER_SPEED;
         this.justLeveledTimer = 0;
 
         this.attacking = false;
@@ -69,9 +71,10 @@ export class Player{
         this.level += 1;
         this.maxHp += CONFIG.HP_PER_LEVEL;
         this.attackDamage += CONFIG.DAMAGE_PER_LEVEL;
-        this.hp = this.maxHp;
         this.justLeveledTimer = 1.6;
-
+        this.armor += CONFIG.ARMOR_PER_LEVEL
+        this.hp += CONFIG.HP_PER_LEVEL * 2;
+        if(this.hp > this.maxHp) this.hp = this.maxHp;
         this.xpToNext = Math.round(CONFIG.XP_BASE * Math.pow(this.level, CONFIG.XP_GROWTH));
         Sound.play("quest");
     }
@@ -81,6 +84,22 @@ export class Player{
         Sound.play("pickup");
     }
 
+    addMoveSpeed(amount){
+        this.moveSpeed += amount;
+    }
+
+    increaseMaxHealth(amount){
+        this.maxHp += amount;
+    }
+
+    addArmor(amount){
+        this.armor += amount;
+    }
+
+    addAttackSpeed(amount){
+        this.attackSpeed += amount;
+    }
+
     get body(){
         return{ x: this.x, y: this.y, w:this.width, h: this.height};
     }
@@ -88,8 +107,8 @@ export class Player{
     update(dt, map){
         const wasAttacking = this.attacking;
 
-        if (this.attackSpeed > 0) {
-            this.attackSpeed -= dt;
+        if (this.attackCd > 0) {
+            this.attackCd -= dt;
         }
         if(this.invincibleTimer > 0) this.invincibleTimer -= dt;
         if(this.justLeveledTimer > 0) this.justLeveledTimer -= dt;
@@ -104,7 +123,7 @@ export class Player{
             }
         }
 
-        if (!wasAttacking && !this.attacking && this.attackSpeed <= 0) {
+        if (!wasAttacking && !this.attacking && this.attackCd <= 0) {
             this.startAttack();
         }
 
@@ -119,8 +138,8 @@ export class Player{
             const len = Math.hypot(dx, dy);
             dx /= len;
             dy /= len;
-            const stepX = dx * CONFIG.PLAYER_SPEED * dt;
-            const stepY = dy * CONFIG.PLAYER_SPEED * dt;
+            const stepX = dx * this.moveSpeed * dt;
+            const stepY = dy * this.moveSpeed * dt;
             this.moveAxis(stepX, 0, map);
             this.moveAxis(0, stepY, map);
             if (!this.attacking) this.anim.update(dt, FRAMES.run);
@@ -146,7 +165,7 @@ export class Player{
 
         this.attacking = true;
         this.attackTimer = FRAMES.sword / CONFIG.ATTACK_ANIM_FPS;
-        this.attackSpeed = .5;
+        this.attackCd = 2 / this.attackSpeed;
         this.attackHasHit = false;
         this.anim.reset();
         Sound.play("attack");
@@ -185,10 +204,9 @@ export class Player{
     }
     takeDamage(amount){
     if(this.invincibleTimer > 0) return;
-
+    
     this.hp = Math.max(0, this.hp - amount);
     this.invincibleTimer = 0.8;
-
     Sound.play("hit");
 }
     

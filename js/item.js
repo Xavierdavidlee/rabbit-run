@@ -19,6 +19,7 @@ import { Sound } from "./audio.js";
 
 export class Item{
     constructor(data){
+        console.log(data.name, data.tile);
         this.x = data.x;
         this.y = data.y;
         this.width = CONFIG.SCALED_TILE;
@@ -26,9 +27,14 @@ export class Item{
         this.id = data.id || "carrot";
         this.name = data.name || "Carrot";
         this.tile = data.tile || "crops:24";
-        this.heal = data.heal === true ? CONFIG.HEAL_ITEM_AMOUNT : (data.heal || 0);
+        this.heal = data.heal === true ? CONFIG.HEAL_ITEM_AMOUNT : Number(data.heal || 0);
+        this.moveSpeed = Number(data.moveSpeed || data.moveSpeedBonus || 0);
+        this.maxHealth = Number(data.maxHealth || data.maxHealthBonus || 0);
+        this.armor = Number(data.armor || data.armorBonus || 0);
+        this.attackSpeed = Number(data.attackSpeed || data.attackSpeedBonus || 0);
         this.bob = Math.random() * Math.PI * 2;
         this.collected = false;
+        this.canCollect = true;
     }
 
     update(dt){ this.bob += dt * 3; }

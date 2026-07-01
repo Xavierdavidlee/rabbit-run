@@ -38,7 +38,7 @@ import { QuestLog } from "./quest.js"
 import { Dialogue } from "./dialogue.js";
 import { Battle } from "./battle.js";
 import { UI } from "./ui.js"
-import { Particles } from "./particles.js";
+import { Particles, Floaters } from "./particles.js";
 const STATE = {
     LOADING : "loading",
     TITLE : "title",
@@ -61,7 +61,7 @@ class Game {
         this.state = STATE.LOADING;
     }
     startWave() {
-    const count = 2 + this.wave*20;
+    const count = 12 + this.wave*1.5;
     for (let i = 0; i < count; i++) {
         this.spawnEnemyAtRandomEdge();
     }
@@ -173,6 +173,7 @@ this.enemies.push(new Enemy({
             break;
        }
        Particles.update(dt);
+       Floaters.update(dt);
     }
     updatePlaying(dt){
         if(Input.wasPressed("KeyI")) {
@@ -203,6 +204,10 @@ this.enemies.push(new Enemy({
 
         for(const enemy of this.enemies){
             enemy.update(dt, this.player, this.map, this.wave);
+            if(enemy.state === "dead" && enemy.drop && !enemy.dropSpawned && enemy.dead){
+                this.items.push(new Item(enemy.drop));
+                enemy.dropSpawned = true;
+            }
         }
         this.enemies = this.enemies.filter(e=>!e.dead);
 
@@ -215,6 +220,10 @@ this.enemies.push(new Enemy({
                 this.inventory.add(item.id, item.name);
                 this.questLog.onCollect(item.id);
                 if(item.heal) this.player.heal(item.heal);
+                if(item.moveSpeed) this.player.addMoveSpeed(item.moveSpeed);
+                if(item.maxHealth) this.player.increaseMaxHealth(item.maxHealth);
+                if(item.armor) this.player.addArmor(item.armor);
+                if(item.attackSpeed) this.player.addAttackSpeed(item.attackSpeed);
             }
         }
         this.items = this.items.filter(i => !i.collected);
@@ -228,7 +237,7 @@ this.enemies.push(new Enemy({
         
         this.camera.follow(this.player, this.map);
         this.timeElapsed += dt;
-        const newWave = Math.floor(this.timeElapsed / 60) + 1;
+        const newWave = Math.floor(this.timeElapsed / 30) + 1;
 
         if (newWave > this.wave) {
             this.wave = newWave;
@@ -283,11 +292,11 @@ this.enemies.push(new Enemy({
         ctx.fillRect(0,0,CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
         
         if(this.state === STATE.LOADING){
-            UI.drawScreen(ctx, "Loading...", "Gathering carrots and courage");
+            UI.drawScreen(ctx, "Loading...", "Readying Sword");
             return
         }
         if(this.state === STATE.TITLE){
-            UI.drawScreen(ctx, "Rabbit Run: Tales of the Warran",
+            UI.drawScreen(ctx, "Knighting at Night",
                 "Press Space to begin", "#ffd98a");
             return;
         }
@@ -296,13 +305,18 @@ this.enemies.push(new Enemy({
         this.map.drawLayer(ctx, "ground", this.camera);
         this.map.drawLayer(ctx, "overlay", this.camera);
 
-        const things = [...this.items, ...this.npcs, ...this.enemies, this.player];
-        things.sort((a,b) => (a.y + a.height) - (b.y + b.height));
-        for (const t of things) t.draw(ctx, this.camera);
-        
+        const worldEntities = [...this.npcs, ...this.enemies];
+        worldEntities.sort((a,b) => (a.y + a.height) - (b.y + b.height));
+        for (const entity of worldEntities) entity.draw(ctx, this.camera);
+
         this.map.drawLayer(ctx, "decor", this.camera);
 
+        for (const item of this.items) item.draw(ctx, this.camera);
+        this.player.draw(ctx, this.camera);
+        Floaters.draw(ctx, this.camera);
+
         UI.drawHealth(ctx, this.player);
+        UI.drawStats(ctx, this.player);
         UI.drawQuests(ctx, this.questLog);
         if(this.state === STATE.PLAYING && this.nearbyNpc){
             UI.drawPrompt(ctx, `Press T to talk to ${this.nearbyNpc.name}`);
@@ -317,7 +331,7 @@ this.enemies.push(new Enemy({
             UI.drawScreen(ctx, "Game Over", "Press ENTER to try again", "#f08a8a");
         }
         if(this.state === STATE.WIN){
-            UI.drawScreen(ctx, "You Win!", "Every quest complete! Enter for title", "#9ad9b0");
+            UI.drawScreen(ctx, "You Win!", "Enter for title", "#9ad9b0");
         }
         if (this.state === STATE.PLAYING) {
         const ctx = this.ctx;

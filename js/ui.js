@@ -45,7 +45,7 @@ export const UI = {
         ctx.fillStyle = COLORS.text;
         ctx.font = "12px monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`HP ${player.hp}/${player.maxHp}`, x + 6, y + 13);
+        ctx.fillText(`${Math.round(player.hp)}/${Math.round(player.maxHp)}`, x + 6, y + 13);
 
         const xpY = y + hpH + gap;
         ctx.fillStyle = COLORS.hpBack;
@@ -114,6 +114,22 @@ export const UI = {
             ctx.fillText("✓ " + q.title, x + 10, ty);
             ty += 16;
         }
+    },
+
+    drawStats(ctx, player){
+        const w = 220;
+        const h = 84;
+        const x = 12;
+        const y = CONFIG.CANVAS_HEIGHT - h - 12;
+
+        panel(ctx, x, y, w, h);
+        ctx.fillStyle = COLORS.text;
+        ctx.font = "12px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(`attackSpeed: ${player.attackSpeed.toFixed(2)}`, x + 10, y + 24);
+        ctx.fillText(`attackDamage: ${player.attackDamage}`, x + 10, y + 42);
+        ctx.fillText(`attackRange: ${CONFIG.PLAYER_ATTACK_RANGE}`, x + 10, y + 60);
+        ctx.fillText(`armor: ${player.armor}`, x + 10, y + 78);
     },
 
     drawPrompt(ctx, text){

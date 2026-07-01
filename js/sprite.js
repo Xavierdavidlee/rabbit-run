@@ -59,12 +59,12 @@ export class SpriteAnimator{
             size, size
     );
 }
-    drawR(ctx, imageName, row, x, y){
-        const img = Images[imageName += "_R"];
+    drawR(ctx, imageName, row, x, y, scale = 1){
+        const img = Images[imageName + "_R"];
         if(!img) return;
         const sx = this.frameIndex * this.frameSize;
         const sy = row * this.frameSize;
-        const size = this.frameSize * CONFIG.SCALE;
+        const size = this.frameSize * CONFIG.SCALE * scale;
         ctx.drawImage(img, sx, sy, this.frameSize, this.frameSize, x, y, size, size);
     }
 }
