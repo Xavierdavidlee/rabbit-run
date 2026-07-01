@@ -29,12 +29,13 @@
             idleSheet: "slime_idle", hurtSheet : "slime_hurt", deathSheet : "slime_death",
             idleFrames : 8, hurtFrames : 2, deathFrames : 4,
             hp : 15 + CONFIG.PLAYER_MAX_HP * 0.2, speed:20, damage:3, sightRange:120, attackRange:30, xp:5,
-            scale: 1.2
+            scale: 1.5
         },
         bat : {
             idleSheet: "bat_idle", hurtSheet : "bat_hurt", deathSheet : "bat_death",
             idleFrames : 4, hurtFrames : 2, deathFrames : 5,
             hp : 6 + CONFIG.PLAYER_MAX_HP * 0.2, speed:60, damage:2, sightRange:160, attackRange:28, xp:4,
+            scale: 1.2
         },
         rat : {
             idleSheet: "rat_idle", hurtSheet : "rat_hurt", deathSheet : "rat_death",
@@ -151,8 +152,14 @@
 
         moveAxis(mx, my, map){
             const nx = this.x + mx, ny = this.y + my;
-            if (!map.isSolidAtPixel(nx + this.width/2, ny + this.height/2)){
-                this.x = nx; this.y = ny;
+            const centerX = nx + this.width/2;
+            const centerY = ny + this.height/2;
+            const inBounds = centerX >= 0 && centerY >= 0 && centerX < map.pixelWidth && centerY < map.pixelHeight;
+            if (!inBounds) return;
+
+            if (this.type === "bat" || !map.isSolidAtPixel(centerX, centerY)){
+                this.x = nx;
+                this.y = ny;
             }
         }
         takeDamage(amount){
@@ -189,6 +196,7 @@
             tile: "crops:86",
             maxHealth: 3,
             heal: 3,
+            attackRange: 5,
         },
         {
             id: "pumpkin",

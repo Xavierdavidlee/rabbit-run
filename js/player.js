@@ -50,6 +50,7 @@ export class Player{
         this.xp = 0;
         this.xpToNext = CONFIG.XP_BASE;
         this.attackDamage = CONFIG.PLAYER_ATTACK_DAMAGE;
+        this.attackRange = CONFIG.PLAYER_ATTACK_RANGE;
         this.moveSpeed = CONFIG.PLAYER_SPEED;
         this.justLeveledTimer = 0;
 
@@ -70,10 +71,13 @@ export class Player{
     levelUp(){
         this.level += 1;
         this.maxHp += CONFIG.HP_PER_LEVEL;
+        CONFIG.HP_PER_LEVEL += CONFIG.HP_PER_LEVEL * 1.1;
         this.attackDamage += CONFIG.DAMAGE_PER_LEVEL;
         this.justLeveledTimer = 1.6;
-        this.armor += CONFIG.ARMOR_PER_LEVEL
-        this.hp += CONFIG.HP_PER_LEVEL * 2;
+        this.armor += CONFIG.ARMOR_PER_LEVEL;
+        CONFIG.ARMOR_PER_LEVEL += CONFIG.ARMOR_PER_LEVEL * 1.25;
+        this.hp += CONFIG.HP_PER_LEVEL;
+        CONFIG.HP_PER_LEVEL += CONFIG.HP_PER_LEVEL * 1.125;
         if(this.hp > this.maxHp) this.hp = this.maxHp;
         this.xpToNext = Math.round(CONFIG.XP_BASE * Math.pow(this.level, CONFIG.XP_GROWTH));
         Sound.play("quest");
@@ -98,6 +102,14 @@ export class Player{
 
     addAttackSpeed(amount){
         this.attackSpeed += amount;
+    }
+
+    addAttackDamage(amount){
+        this.attackDamage += amount;
+    }
+
+    addAttackRange(amount){
+        this.attackRange += amount;
     }
 
     get body(){
@@ -174,7 +186,7 @@ export class Player{
     getAttackPoint(){
     const cx = this.x + this.width / 2;
     const cy = this.y + this.height / 2;
-    const r = CONFIG.PLAYER_ATTACK_RANGE;
+    const r = this.attackRange;
 
     if(this.dir === DIR1.LEFT){
         return { x: cx - r, y: cy - 10, w: r, h: 20 };

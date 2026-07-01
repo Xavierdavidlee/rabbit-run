@@ -22,6 +22,7 @@ const COLORS = {
     hpBack:   "#3a5a70",
     accent:   "#ffd98a",
     done:     "#9ad9b0",
+    timer:    "#ff6b6b",
 };
 
 function panel(ctx, x, y, w, h){
@@ -64,6 +65,15 @@ export const UI = {
             ctx.font = "bold 14px monospace";
             ctx.fillText("LEVEL UP!", x + 2, xpY + xpH + 20);
         }
+    },
+
+    drawDeltaTime(ctx, elapsedTime){
+        ctx.save();
+        ctx.fillStyle = COLORS.timer;
+        ctx.font = "12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`TIME ${elapsedTime.toFixed(1)}s`, CONFIG.CANVAS_WIDTH / 2, 20);
+        ctx.restore();
     },
 
     drawQuests(ctx, questLog){

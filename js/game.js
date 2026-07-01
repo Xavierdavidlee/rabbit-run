@@ -130,6 +130,7 @@ this.enemies.push(new Enemy({
         Sound.playMusic(this.mapData.music || "town_theme");
         this.wave = 1;
         this.timeElapsed = 0;
+        this.elapsedTime = 0;
         this.startWave();
     }
 
@@ -137,6 +138,7 @@ this.enemies.push(new Enemy({
         let dt = (timestamp - this.lastTime)/1000;
         this.lastTime = timestamp;
         if(dt > 0.05) dt = 0.05;
+        this.elapsedTime += dt;
 
         this.update(dt);
         this.draw();
@@ -224,6 +226,8 @@ this.enemies.push(new Enemy({
                 if(item.maxHealth) this.player.increaseMaxHealth(item.maxHealth);
                 if(item.armor) this.player.addArmor(item.armor);
                 if(item.attackSpeed) this.player.addAttackSpeed(item.attackSpeed);
+                if(item.damage) this.player.addAttackDamage(item.damage);
+                if(item.attackRange) this.player.addAttackRange(item.attackRange);
             }
         }
         this.items = this.items.filter(i => !i.collected);
@@ -315,6 +319,7 @@ this.enemies.push(new Enemy({
         this.player.draw(ctx, this.camera);
         Floaters.draw(ctx, this.camera);
 
+        UI.drawDeltaTime(ctx, this.elapsedTime);
         UI.drawHealth(ctx, this.player);
         UI.drawStats(ctx, this.player);
         UI.drawQuests(ctx, this.questLog);

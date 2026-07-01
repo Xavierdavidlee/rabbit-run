@@ -32,6 +32,8 @@ export class Item{
         this.maxHealth = Number(data.maxHealth || data.maxHealthBonus || 0);
         this.armor = Number(data.armor || data.armorBonus || 0);
         this.attackSpeed = Number(data.attackSpeed || data.attackSpeedBonus || 0);
+        this.damage = Number(data.damage || data.attackDamage || 0);
+        this.attackRange = Number(data.attackRange || data.range || 0);
         this.bob = Math.random() * Math.PI * 2;
         this.collected = false;
         this.canCollect = true;
