@@ -18,7 +18,7 @@ export const CONFIG = {
     SCALE : 3,
     VIEW_TILES_X : 16,
     VIEW_TILES_Y : 12,
-    PLAYER_SPEED : 400,
+    PLAYER_SPEED : 300,
     PLAYER_FRAME_SIZE : 48,
     PLAYER_MAX_HP : 30,
     PLAYER_ATTACK_DAMAGE : 10,

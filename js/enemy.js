@@ -196,7 +196,6 @@
             tile: "crops:86",
             maxHealth: 3,
             heal: 3,
-            attackRange: 5,
         },
         {
             id: "pumpkin",

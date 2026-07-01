@@ -226,8 +226,8 @@ this.enemies.push(new Enemy({
                 if(item.maxHealth) this.player.increaseMaxHealth(item.maxHealth);
                 if(item.armor) this.player.addArmor(item.armor);
                 if(item.attackSpeed) this.player.addAttackSpeed(item.attackSpeed);
-                if(item.damage) this.player.addAttackDamage(item.damage);
-                if(item.attackRange) this.player.addAttackRange(item.attackRange);
+                if(Number.isFinite(item.damage) && item.damage !== 0) this.player.addAttackDamage(item.damage);
+                if(Number.isFinite(item.attackRange) && item.attackRange !== 0) this.player.addAttackRange(item.attackRange);
             }
         }
         this.items = this.items.filter(i => !i.collected);

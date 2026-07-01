@@ -138,7 +138,7 @@ export const UI = {
         ctx.textAlign = "left";
         ctx.fillText(`attackSpeed: ${player.attackSpeed.toFixed(2)}`, x + 10, y + 24);
         ctx.fillText(`attackDamage: ${player.attackDamage}`, x + 10, y + 42);
-        ctx.fillText(`attackRange: ${CONFIG.PLAYER_ATTACK_RANGE}`, x + 10, y + 60);
+        ctx.fillText(`attackRange: ${player.attackRange}`, x + 10, y + 60);
         ctx.fillText(`armor: ${player.armor}`, x + 10, y + 78);
     },
 
